@@ -60,7 +60,7 @@ create table JuniorDev(
 -- Bridges Board-[]<-Category
 create table contains(
   board_title varchar(50),
-  category_id serial,
+  category_id integer,
   primary key(board_title, category_id),
   foreign key (board_title) references Board (title),
   foreign key (category_id) references Category (id) on delete cascade
@@ -68,15 +68,15 @@ create table contains(
 -- Bridges Board->[]<-Card
 create table isBackloggedOn(
   board_title varchar(50),
-  card_id serial,
+  card_id integer,
   primary key(board_title, card_id),
   foreign key (board_title) references Board (title),
   foreign key (card_id) references Card (id)
 );
 -- Bridges Category-[]<-Card
 create table categorizedAs(
- category_id serial references Category(id),
- card_id serial references Card(id),
+ category_id integer references Category(id),
+ card_id integer references Card(id),
  primary key (category_id, card_id),
  foreign key (category_id) references Category(id),
  foreign key (card_id) references Card(id) on delete cascade
@@ -108,7 +108,7 @@ create table composedOf(
 -- Bridges TeamMember-[]-Card
 create table assignedTo(
   member_email text references TeamMember(email),
-  card_id serial references Card(id),
+  card_id integer references Card(id),
   primary key(member_email, card_id),
   foreign key (member_email) references TeamMember(email),
   foreign key (card_id) references Card(id)

@@ -16,7 +16,7 @@ Agile Board Project for CSE412
 9. You now have a the database working locally.
 
 ## Usage
-### To Use `psql`
+### To Use psql
 To use `psql`, the command line interface for Postgres, do the following:
 - `docker ps -a` and copy the name of the running container (should be some weird name like "ecstatic_hugle")
 - `docker run -it --rm --link <NAME_THAT_YOU_COPIED>:postgres postgres psql -h postgres -U postgres` This will give you access to psql command line interface. You can now run commands here.
@@ -27,7 +27,7 @@ To use `psql`, the command line interface for Postgres, do the following:
 
 
 ## Authors
-- Spencer Bywater @spencerbyw
+- Spencer Bywater [@spencerbyw](https://github.com/spencerbywater)
 - Alex Rhodes
 - Alex Chambers
 - Caleb Hutchison

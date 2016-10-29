@@ -37,7 +37,7 @@ create table TeamMember(
 --
 create table SeniorDev(
   email text,
-  dateBecameSenior date,
+  dateBecameSenior date check(dateBecameSenior < now()),
   primary key(email),
   foreign key (email) references TeamMember (email) on delete cascade
 );

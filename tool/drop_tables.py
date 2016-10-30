@@ -10,7 +10,7 @@ cur = conn.cursor()
 print("DB: Connection successful.")
 
 print('-> Dropping all the tables...')
-cur.execute('DROP TABLE assignedto, board, card, categorizedas, category, composedof, contains, hasleader, intern, isbackloggedon, juniordev, runby, seniordev, team, teammember;')
+cur.execute('DROP TABLE assignedto, board, card, categorizedas, category, composedof, boardcontains, hasleader, intern, isbackloggedon, juniordev, runby, seniordev, team, teammember;')
 print('-> Dropped all the tables.')
 
 print('DB: Attempting commit and close...')

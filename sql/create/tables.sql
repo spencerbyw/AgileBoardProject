@@ -58,7 +58,7 @@ CREATE TABLE JuniorDev(
 
 -- Relationships
 -- Bridges Board-[]<-Category
-CREATE TABLE contains(
+CREATE TABLE boardContains(
   board_title VARCHAR(50),
   category_id INTEGER,
   PRIMARY KEY(board_title, category_id),

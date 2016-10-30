@@ -1,1 +1,0 @@
-UPDATE card SET due_date = '2016-10-1' WHERE due_date < '2016-12-31';

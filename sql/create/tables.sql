@@ -1,115 +1,115 @@
 -- Entities
-create table Board(
-  title varchar(50) not null,
-  description text,
-  primary key(title)
+CREATE TABLE Board(
+  title VARCHAR(50) NOT NULL,
+  description TEXT,
+  PRIMARY KEY(title)
 );
 --
-create table Team(
-  name varchar(50) not null,
-  primary key(name)
+CREATE TABLE Team(
+  name VARCHAR(50) NOT NULL,
+  PRIMARY KEY(name)
 );
 --
-create table Category(
-  id serial,
-  title varchar(50),
-  description text,
-  primary key(id)
+CREATE TABLE Category(
+  id SERIAL,
+  title VARCHAR(50),
+  description TEXT,
+  PRIMARY KEY(id)
 );
 --
-create table Card(
-  id serial,
-  due_date date,
-  priority varchar(5),
-  description text,
-  title varchar(50),
-  primary key(id)
+CREATE TABLE Card(
+  id SERIAL,
+  due_DATE DATE,
+  priority VARCHAR(5),
+  description TEXT,
+  title VARCHAR(50),
+  PRIMARY KEY(id)
 );
 --
-create table TeamMember(
-  name varchar(50),
-  email text,
-  role varchar(50),
-  password text,
-  hireDate date,
-  primary key(email)
+CREATE TABLE TeamMember(
+  name VARCHAR(50),
+  email TEXT,
+  role VARCHAR(50),
+  password TEXT,
+  hireDATE DATE,
+  PRIMARY KEY(email)
 );
 --
-create table SeniorDev(
-  email text,
-  dateBecameSenior date check(dateBecameSenior < now()),
-  primary key(email),
-  foreign key (email) references TeamMember (email) on delete cascade
+CREATE TABLE SeniorDev(
+  email TEXT,
+  DATEBecameSenior DATE check(DATEBecameSenior < now()),
+  PRIMARY KEY(email),
+  FOREIGN KEY (email) REFERENCES TeamMember (email) ON DELETE CASCADE
 );
 --
-create table Intern(
-  email text,
-  school varchar(50),
-  primary key(email),
-  foreign key (email) references TeamMember (email) on delete cascade
+CREATE TABLE Intern(
+  email TEXT,
+  school VARCHAR(50),
+  PRIMARY KEY(email),
+  FOREIGN KEY (email) REFERENCES TeamMember (email) ON DELETE CASCADE
 );
 --
-create table JuniorDev(
-  email text,
-  almaMater varchar(50),
-  primary key(email),
-  foreign key (email) references TeamMember (email) on delete cascade
+CREATE TABLE JuniorDev(
+  email TEXT,
+  almaMater VARCHAR(50),
+  PRIMARY KEY(email),
+  FOREIGN KEY (email) REFERENCES TeamMember (email) ON DELETE CASCADE
 );
 
 -- Relationships
 -- Bridges Board-[]<-Category
-create table contains(
-  board_title varchar(50),
-  category_id integer,
-  primary key(board_title, category_id),
-  foreign key (board_title) references Board (title) on delete cascade,
-  foreign key (category_id) references Category (id) on delete cascade
+CREATE TABLE contains(
+  board_title VARCHAR(50),
+  category_id INTEGER,
+  PRIMARY KEY(board_title, category_id),
+  FOREIGN KEY (board_title) REFERENCES Board (title) ON DELETE CASCADE,
+  FOREIGN KEY (category_id) REFERENCES Category (id) ON DELETE CASCADE
 );
 -- Bridges Board->[]<-Card
-create table isBackloggedOn(
-  board_title varchar(50),
-  card_id integer,
-  primary key(board_title, card_id),
-  foreign key (board_title) references Board (title) on delete cascade,
-  foreign key (card_id) references Card (id) on delete cascade
+CREATE TABLE isBackloggedOn(
+  board_title VARCHAR(50),
+  card_id INTEGER,
+  PRIMARY KEY(board_title, card_id),
+  FOREIGN KEY (board_title) REFERENCES Board (title) ON DELETE CASCADE,
+  FOREIGN KEY (card_id) REFERENCES Card (id) ON DELETE CASCADE
 );
 -- Bridges Category-[]<-Card
-create table categorizedAs(
- category_id integer references Category(id),
- card_id integer references Card(id),
- primary key (category_id, card_id),
- foreign key (category_id) references Category(id) on delete cascade,
- foreign key (card_id) references Card(id) on delete cascade
+CREATE TABLE categorizedAs(
+ category_id INTEGER REFERENCES Category(id),
+ card_id INTEGER REFERENCES Card(id),
+ PRIMARY KEY (category_id, card_id),
+ FOREIGN KEY (category_id) REFERENCES Category(id) ON DELETE CASCADE,
+ FOREIGN KEY (card_id) REFERENCES Card(id) ON DELETE CASCADE
 );
 -- Bridges Board->[]<-Team
-create table runBy(
-  board_title varchar(50) references Board(title),
-  team_name varchar(50) references Team(name),
-  primary key(board_title, team_name),
-  foreign key (board_title) references Board(title) on delete cascade,
-  foreign key (team_name) references Team(name) on delete cascade
+CREATE TABLE runBy(
+  board_title VARCHAR(50) REFERENCES Board(title),
+  team_name VARCHAR(50) REFERENCES Team(name),
+  PRIMARY KEY(board_title, team_name),
+  FOREIGN KEY (board_title) REFERENCES Board(title) ON DELETE CASCADE,
+  FOREIGN KEY (team_name) REFERENCES Team(name) ON DELETE CASCADE
 );
 -- Bridges Team->[]<-SeniorDev
-create table hasLeader(
-  team_name varchar(50) references Team(name),
-  dev_email text references SeniorDev(email),
-  primary key(team_name, dev_email),
-  foreign key (team_name) references Team(name) on delete cascade,
-  foreign key (dev_email) references SeniorDev(email) on delete cascade
+CREATE TABLE hasLeader(
+  team_name VARCHAR(50) REFERENCES Team(name),
+  dev_email TEXT REFERENCES SeniorDev(email),
+  PRIMARY KEY(team_name, dev_email),
+  FOREIGN KEY (team_name) REFERENCES Team(name) ON DELETE CASCADE,
+  FOREIGN KEY (dev_email) REFERENCES SeniorDev(email) ON DELETE CASCADE
 );
 -- Bridges Team-[]<-TeamMember
-create table composedOf(
-  team_name varchar(50) references Team(name),
-  member_email text references TeamMember(email),
-  primary key(team_name, member_email),
-  foreign key (team_name) references Team(name) on delete cascade,
-  foreign key (member_email) references TeamMember(email) on delete cascade
+CREATE TABLE composedOf(
+  team_name VARCHAR(50) REFERENCES Team(name),
+  member_email TEXT REFERENCES TeamMember(email),
+  PRIMARY KEY(team_name, member_email),
+  FOREIGN KEY (team_name) REFERENCES Team(name) ON DELETE CASCADE,
+  FOREIGN KEY (member_email) REFERENCES TeamMember(email) ON DELETE CASCADE
 );
 -- Bridges TeamMember-[]-Card
-create table assignedTo(
-  member_email text references TeamMember(email),
-  card_id integer references Card(id),
-  primary key(member_email, card_id),
-  foreign key (member_email) references TeamMember(email) on delete cascade,
-  foreign key (card_id) references Card(id) on delete cascade
+CREATE TABLE assignedTo(
+  member_email TEXT REFERENCES TeamMember(email),
+  card_id INTEGER REFERENCES Card(id),
+  PRIMARY KEY(member_email, card_id),
+  FOREIGN KEY (member_email) REFERENCES TeamMember(email) ON DELETE CASCADE,
+  FOREIGN KEY (card_id) REFERENCES Card(id) ON DELETE CASCADE
 );

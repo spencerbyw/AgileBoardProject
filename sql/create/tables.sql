@@ -19,7 +19,7 @@ CREATE TABLE Category(
 --
 CREATE TABLE Card(
   id SERIAL,
-  due_DATE DATE,
+  due_date DATE,
   priority VARCHAR(5),
   description TEXT,
   title VARCHAR(50),
@@ -31,13 +31,13 @@ CREATE TABLE TeamMember(
   email TEXT,
   role VARCHAR(50),
   password TEXT,
-  hireDATE DATE,
+  hireDate DATE,
   PRIMARY KEY(email)
 );
 --
 CREATE TABLE SeniorDev(
   email TEXT,
-  DATEBecameSenior DATE check(DATEBecameSenior < now()),
+  dateBecameSenior DATE check(dateBecameSenior < now()),
   PRIMARY KEY(email),
   FOREIGN KEY (email) REFERENCES TeamMember (email) ON DELETE CASCADE
 );

@@ -1,0 +1,9 @@
+Flask
+Flask-HTTPAuth
+Flask-RESTful
+Jinja2
+MarkupSafe
+Werkzeug
+itsdangerous
+six
+psycopg2

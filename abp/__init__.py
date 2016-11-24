@@ -1,4 +1,5 @@
 import psycopg2
+import settings
 import urllib
 
 from flask import Flask, jsonify, abort, make_response
@@ -101,4 +102,4 @@ api.add_resource(BoardAPI, '/boards/<string:title>', endpoint='board')
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=settings.ENABLE_DEBUG)

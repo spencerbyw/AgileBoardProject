@@ -64,14 +64,15 @@ class CardAPI(Resource):
         if not cur.fetchone() and cln(priority) in ['LOW', 'MED', 'HIGH']:
             return {'error': 'Board does not exist.'}
 
-        query = 'insert into card(due_date, priority, description, title) values (%s, %s, %s, %s) returning id;'
+        query = 'insert into card (due_date, priority, description, title) values (%s, %s, %s, %s) returning *;'
         cur.execute(query, [cln(due_date), cln(priority), cln(description), cln(title)])
-        card_id = cur.fetchone()['id']
+        card = cur.fetchone()['id']
+        card_id = card['id']
 
-        query = 'insert into isbackloggedon(board_title, card_id) values (%s, %s);'
+        query = 'insert into isbackloggedon (board_title, card_id) values (%s, %s);'
         cur.execute(query, [cln(board_title), card_id])
         # conn.commit()
-        return jsonify({'card_id': card_id})
+        return jsonify(card)
 
     # Example: DELETE <host>/card/33
     def delete(self, id):
@@ -81,8 +82,32 @@ class CardAPI(Resource):
 
 
 class MoveCardAPI(Resource):
-    # Move a card
-    pass
+    # Move a card from backlog/category to new category
+    # card_id is the card you want to move.
+    # category_id is the target category. The server handles the idiosyncrasies.
+    # Example: PUT <host>/movecard/card_id=1&category_id=2
+    def put(self, card_id, category_id):
+        # Check card and category exist
+        query = 'select * from card where id = %s;'
+        cur.execute(query, [card_id])
+        c = cur.fetchone()
+        query = 'select * from category where id = %s;'
+        cur.execute(query, [category_id])
+        if not c and not cur.fetchone():
+            return {'error': 'Invalid category or card id'}
+
+        # Delete any old categorizedAs's or isBackloggedOn's
+        query = 'delete from categorizedAs where card_id = %s;'
+        cur.execute(query, [card_id])
+        query = 'delete from isbackloggedon where card_id = %s;'  # Assume you have access to board for now
+        cur.execute(query, [card_id])
+
+        # Create new categorizedAs
+        query = 'insert into categorizedAs (category_id, card_id) values (%s, %s);'
+        cur.execute(query, [category_id, card_id])
+
+        return True
+
 
 
 class AssignCardAPI(Resource):
@@ -215,7 +240,7 @@ class TeamAPI(Resource):
         for c in categories:
             query = 'select c.id, c.due_date, c.priority, c.description, c.title ' \
                     'from categorizedAs ca, Card c ' \
-                    'where ca.category_id = %s and ca.category_id = c.id;'
+                    'where ca.category_id = %s and ca.card_id = c.id;'
             cur.execute(query, [c['id']])
             cards = cur.fetchall()
             get_assigned_to(cards)
@@ -270,6 +295,7 @@ api.add_resource(CardAPI, '/newcard/board_title=<string:board_title>&'
                           'title=<string:title>&due_date=<string:due_date>',
                  endpoint='newcard')
 
+api.add_resource(MoveCardAPI, '/movecard/card_id=<int:card_id>&category_id=<int:category_id>')
 api.add_resource(AssignCardAPI, '/assigncard/email=<string:email>&card_id=<int:card_id>')
 
 api.add_resource(TeamMemberAPI, '/users/<string:email>', endpoint='user')

@@ -71,7 +71,7 @@ class CardAPI(Resource):
         query = 'insert into isbackloggedon(board_title, card_id) values (%s, %s);'
         cur.execute(query, [cln(board_title), card_id])
         # conn.commit()
-        return True
+        return jsonify({'card_id': card_id})
 
     # Example: DELETE <host>/card/33
     def delete(self, id):

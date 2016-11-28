@@ -28,7 +28,7 @@ except Exception as e:
 '''
 *create a new team with a new user as team leader
 
-create a new user
+*create a new user
 
 Pass employee username and password, if it's valid, return the entire team that employee is on, with all of the boards/categories/cards etc. that are under that team object
 
@@ -88,7 +88,7 @@ class BoardAPI(Resource):
     # Example: <host>/boards/Ameliorated
     # NOTE: The title needs to be url_encoded
     def get(self, title):
-        title_clean = urllib.unquote(title).decode('utf8')
+        title_clean = cln(title)
         cur.execute('select * from board where title = %s;',
                     [title_clean])
         board = cur.fetchone()
@@ -114,6 +114,80 @@ class BoardAPI(Resource):
         return jsonify(board)
 
 class TeamAPI(Resource):
+    # This is the cure-all, the origin. Returns mostly everything you need to render the page.
+    # Example: <host>/userboard/sgarcia0%40wordpress.org
+    def get(self, email):
+        uemail = cln(email)
+
+        # Get pertinent user
+        query = "select name, email, role, hiredate from teammember where email = %s;"
+        cur.execute(query, [uemail])
+        uinfo = cur.fetchone()
+
+        # Get user's team
+        query = "select t.name from team t, composedOf co where t.name = co.team_name and co.member_email = %s;"
+        cur.execute(query, [uemail])
+        tinfo = cur.fetchone()
+
+        # Get boards run by team
+        query = "select b.title, b.description from board b, runby rb " \
+                "where b.title = rb.board_title and rb.team_name = %s;"
+        cur.execute(query, [tinfo['name']])
+        board = cur.fetchone()
+
+        # Get Categories in board
+        btitle = board['title']
+        cur.execute('select * from board where title = %s;',
+                    [btitle])
+
+        board = cur.fetchone()
+
+        query = 'select c.id, c.title, c.description ' \
+                'from boardContains bc, Category c ' \
+                'where bc.board_title = %s and bc.category_id = c.id;'
+        cur.execute(query, [btitle])
+        categories = cur.fetchall()
+
+        def get_assigned_to(cards):
+            for card in cards:
+                q = 'select member_email, name ' \
+                    'from assignedTo, teammember ' \
+                    'where card_id = %s and member_email = email;'
+                cur.execute(q, [card['id']])
+                cinfo = cur.fetchone()
+                if cinfo:
+                    card['assignedto'] = cinfo
+                else:
+                    card['assignedto'] = None
+
+        # Get Cards for each Category
+        for c in categories:
+            query = 'select c.id, c.due_date, c.priority, c.description, c.title ' \
+                    'from categorizedAs ca, Card c ' \
+                    'where ca.category_id = %s and ca.category_id = c.id;'
+            cur.execute(query, [c['id']])
+            cards = cur.fetchall()
+            get_assigned_to(cards)
+
+            c['cards'] = cards
+
+        board['categories'] = categories
+
+        # Get Cards in board backlog
+        query = 'select c.id, c.due_date, c.priority, c.description, c.title ' \
+                'from card c, isbackloggedon ibo ' \
+                'where ibo.board_title = %s and ibo.card_id = c.id;'
+        cur.execute(query, [btitle])
+        backlogged_cards = cur.fetchall()
+        get_assigned_to(backlogged_cards)
+
+        board['backlog'] = backlogged_cards
+
+        # Put it all together
+        tinfo['board'] = board
+        uinfo['team'] = tinfo
+        return jsonify(uinfo)
+
     # Create a Team with TeamMember as leader
     # Example: <host>/addteam/name=CoolTeam&email=sgarcia0%40wordpress.org
     def post(self, name, email):
@@ -146,6 +220,7 @@ api.add_resource(TeamMemberAPI, '/users/<string:email>', endpoint='user')
 api.add_resource(TeamMemberAPI, '/adduser/name=<string:name>&email=<string:email>&role=<string:role>&pwd=<string:pwd>&ent_type=<string:ent_type>',
                  endpoint='adduser')
 api.add_resource(BoardAPI, '/boards/<string:title>', endpoint='board')
+api.add_resource(TeamAPI, '/userboard/<string:email>', endpoint='userboard')
 api.add_resource(TeamAPI, '/addteam/name=<string:name>&email=<string:email>', endpoint='addteam')
 
 

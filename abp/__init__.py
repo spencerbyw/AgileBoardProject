@@ -47,22 +47,40 @@ delete a category
 
 
 class CardAPI(Resource):
-    # Example: <host>/cards/33
+    # Example: GET <host>/cards/33
     def get(self, id):
         # Use comma, not % to avoid sql injection
         cur.execute('SELECT * FROM card WHERE id = %s;', [id])
         card = cur.fetchone()
         return jsonify(card)
 
-    def delete(self, id):
-        cur.execute('delete from card where id = %s;', [id])
+    # Create new card in backlog of board_title
+    # Example: POST <host>/newcard/board_title=Ameliorated&priority=MED&description=Freaking%20cool&title=Great%20Card&due_date=09-15-2017
+    def post(self, board_title, priority, description, title, due_date):
+        # Make sure board exists and priority is right
+        query = 'select * from board where title = %s;'
+        cur.execute(query, [cln(board_title)])
+        if not cur.fetchone() and cln(priority) in ['LOW', 'MED', 'HIGH']:
+            return {'error': 'Board does not exist.'}
+
+        query = 'insert into card(due_date, priority, description, title) values (%s, %s, %s, %s) returning id;'
+        cur.execute(query, [cln(due_date), cln(priority), cln(description), cln(title)])
+        card_id = cur.fetchone()['id']
+
+        query = 'insert into isbackloggedon(board_title, card_id) values (%s, %s);'
+        cur.execute(query, [cln(board_title), card_id])
         conn.commit()
         return True
+
+    # Example: DELETE <host>/cards/33
+    # def delete(self, id):
+    #     cur.execute('delete from card where id = %s;', [id])
+    #     conn.commit()
+    #     return True
 
 
 class TeamMemberAPI(Resource):
     # Example: <host>/users/sgarcia0%40wordpress.org
-    # NOTE: the email needs to be url_encoded
     def get(self, email):
         cur.execute('SELECT email, hiredate, name, role FROM TeamMember WHERE email = %s;',
                     [cln(email)])
@@ -81,7 +99,6 @@ class TeamMemberAPI(Resource):
 
         conn.commit()
         return True
-
 
 
 class BoardAPI(Resource):
@@ -112,6 +129,7 @@ class BoardAPI(Resource):
         board['categories'] = categories
         # TODO: return backlog
         return jsonify(board)
+
 
 class TeamAPI(Resource):
     # This is the cure-all, the origin. Returns mostly everything you need to render the page.
@@ -213,13 +231,19 @@ class TeamAPI(Resource):
         return True
 
 
-
-
 api.add_resource(CardAPI, '/cards/<int:id>', endpoint='card')
+api.add_resource(CardAPI, '/newcard/board_title=<string:board_title>&'
+                          'priority=<string:priority>&description=<string:description>&'
+                          'title=<string:title>&due_date=<string:due_date>',
+                 endpoint='newcard')
+
 api.add_resource(TeamMemberAPI, '/users/<string:email>', endpoint='user')
-api.add_resource(TeamMemberAPI, '/adduser/name=<string:name>&email=<string:email>&role=<string:role>&pwd=<string:pwd>&ent_type=<string:ent_type>',
+api.add_resource(TeamMemberAPI, '/adduser/name=<string:name>&email=<string:email>&role=<string:role>&'
+                                'pwd=<string:pwd>&ent_type=<string:ent_type>',
                  endpoint='adduser')
+
 api.add_resource(BoardAPI, '/boards/<string:title>', endpoint='board')
+
 api.add_resource(TeamAPI, '/userboard/<string:email>', endpoint='userboard')
 api.add_resource(TeamAPI, '/addteam/name=<string:name>&email=<string:email>', endpoint='addteam')
 

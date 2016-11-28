@@ -19,6 +19,7 @@ try:
                             user='postgres',
                             host='127.0.0.1',
                             port='5432')
+    conn.autocommit = True
     cur = conn.cursor(cursor_factory=RealDictCursor)
 except Exception as e:
     print("DB connection failed, exiting with Exception:")
@@ -47,14 +48,14 @@ delete a category
 
 
 class CardAPI(Resource):
-    # Example: GET <host>/cards/33
+    # Example: GET <host>/card/33
     def get(self, id):
         # Use comma, not % to avoid sql injection
         cur.execute('SELECT * FROM card WHERE id = %s;', [id])
         card = cur.fetchone()
         return jsonify(card)
 
-    # Create new card in backlog of board_title
+    # Create new card in backlog of board_title (due_date is MM-DD-YYYY)
     # Example: POST <host>/newcard/board_title=Ameliorated&priority=MED&description=Freaking%20cool&title=Great%20Card&due_date=09-15-2017
     def post(self, board_title, priority, description, title, due_date):
         # Make sure board exists and priority is right
@@ -69,14 +70,43 @@ class CardAPI(Resource):
 
         query = 'insert into isbackloggedon(board_title, card_id) values (%s, %s);'
         cur.execute(query, [cln(board_title), card_id])
-        conn.commit()
+        # conn.commit()
         return True
 
-    # Example: DELETE <host>/cards/33
-    # def delete(self, id):
-    #     cur.execute('delete from card where id = %s;', [id])
-    #     conn.commit()
-    #     return True
+    # Example: DELETE <host>/card/33
+    def delete(self, id):
+        cur.execute('delete from card where id = %s;', [id])
+        # conn.commit()
+        return True
+
+
+class MoveCardAPI(Resource):
+    # Move a card
+    pass
+
+
+class AssignCardAPI(Resource):
+    # Assign card to a specific user
+    def put(self, email, card_id):
+        # Check user and card exist
+        query = 'select * from teammember where email = %s;'
+        cur.execute(query, [cln(email)])
+        tm = cur.fetchone()
+        query = 'select * from card where id = %s;'
+        cur.execute(query, [card_id])
+        if not tm and not cur.fetchone():
+            return {'error': 'Card and/or TeamMember does/do not exist.'}
+
+        # Delete previous assignments to that card
+        query = 'delete from assignedTo where card_id = %s;'
+        cur.execute(query, [card_id])
+
+        # Create new assignedTo
+        query = 'insert into assignedTo(member_email, card_id) values (%s, %s);'
+        cur.execute(query, [cln(email), card_id])
+
+        # conn.commmit()
+        return True
 
 
 class TeamMemberAPI(Resource):
@@ -97,7 +127,7 @@ class TeamMemberAPI(Resource):
         query = "insert into {} (email) values (%s);".format(ent_type)
         cur.execute(query, [cln(email)])
 
-        conn.commit()
+        # conn.commit()
         return True
 
 
@@ -229,15 +259,17 @@ class TeamAPI(Resource):
         query = "insert into hasLeader(team_name, dev_email) values (%s, %s);"
         cur.execute(query, [cln(name), cln(email)])
 
-        conn.commit()
+        # conn.commit()
         return True
 
 
-api.add_resource(CardAPI, '/cards/<int:id>', endpoint='card')
+api.add_resource(CardAPI, '/card/<int:id>', endpoint='card')
 api.add_resource(CardAPI, '/newcard/board_title=<string:board_title>&'
                           'priority=<string:priority>&description=<string:description>&'
                           'title=<string:title>&due_date=<string:due_date>',
                  endpoint='newcard')
+
+api.add_resource(AssignCardAPI, '/assigncard/email=<string:email>&card_id=<int:card_id>')
 
 api.add_resource(TeamMemberAPI, '/users/<string:email>', endpoint='user')
 api.add_resource(TeamMemberAPI, '/adduser/name=<string:name>&email=<string:email>&role=<string:role>&'

@@ -87,6 +87,7 @@ class MoveCardAPI(Resource):
 
 class AssignCardAPI(Resource):
     # Assign card to a specific user
+    # Example: PUT <host>/assigncard/email=sgarcia0%40wordpress.org&card_id=49
     def put(self, email, card_id):
         # Check user and card exist
         query = 'select * from teammember where email = %s;'

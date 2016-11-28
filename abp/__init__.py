@@ -64,9 +64,10 @@ class CardAPI(Resource):
         if not cur.fetchone() and cln(priority) in ['LOW', 'MED', 'HIGH']:
             return {'error': 'Board does not exist.'}
 
-        query = 'insert into card (due_date, priority, description, title) values (%s, %s, %s, %s) returning *;'
+        query = 'insert into card (due_date, priority, description, title) values (%s, %s, %s, %s) ' \
+                'returning id, due_date, priority, description, title;'
         cur.execute(query, [cln(due_date), cln(priority), cln(description), cln(title)])
-        card = cur.fetchone()['id']
+        card = cur.fetchone()
         card_id = card['id']
 
         query = 'insert into isbackloggedon (board_title, card_id) values (%s, %s);'

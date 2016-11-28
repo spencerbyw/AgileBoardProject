@@ -1,5 +1,5 @@
 import urllib
 
 
-def url_decode(s):
+def cln(s):
     return urllib.unquote(s).decode('utf8')

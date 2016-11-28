@@ -10,7 +10,7 @@ from lib.helpers import cln
 from psycopg2.extras import RealDictCursor
 
 app = Flask(__name__, static_url_path=None)
-cors = CORS(app, resources={r"/*": {"origins": "alexsrhodes.webfactional.com"}})
+cors = CORS(app, resources={r"/*": {"origins": "*"}})
 api = Api(app)
 # auth = HTTPBasicAuth()
 
@@ -69,14 +69,18 @@ class TeamMemberAPI(Resource):
         tm = cur.fetchone()
         return jsonify(tm)
 
-    # def post(self, name, email, role, pwd, type):
-    #     if cln(type).lower() not in ['seniordev', 'intern', 'juniordev']:
-    #         return {'error': 'Invalid type. Must be seniordev, intern, or juniordev.'}
-    #
-    #     query = "insert into teammember(name, email, role, password, hiredate) values (%s, %s, %s, %s, now());"
-    #     cur.execute(query, [cln(name), cln(email), cln(role), cln(pwd)])
-    #
-    #     conn.commit()
+    # Example: <host>/adduser/name=Bob&email=bob%40bob.com&role=Ninja&pwd=afWIOJf&ent_type=SeniorDev
+    def post(self, name, email, role, pwd, ent_type):
+        if cln(ent_type).lower() not in ['seniordev', 'intern', 'juniordev']:
+            return {'error': 'Invalid type. Must be seniordev, intern, or juniordev.'}
+
+        query = "insert into teammember(name, email, role, password, hiredate) values (%s, %s, %s, %s, now());"
+        cur.execute(query, [cln(name), cln(email), cln(role), cln(pwd)])
+        query = "insert into {} (email) values (%s);".format(ent_type)
+        cur.execute(query, [cln(email)])
+
+        conn.commit()
+        return True
 
 
 
@@ -106,6 +110,7 @@ class BoardAPI(Resource):
             c['cards'] = cards
 
         board['categories'] = categories
+        # TODO: return backlog
         return jsonify(board)
 
 class TeamAPI(Resource):
@@ -138,8 +143,10 @@ class TeamAPI(Resource):
 
 api.add_resource(CardAPI, '/cards/<int:id>', endpoint='card')
 api.add_resource(TeamMemberAPI, '/users/<string:email>', endpoint='user')
+api.add_resource(TeamMemberAPI, '/adduser/name=<string:name>&email=<string:email>&role=<string:role>&pwd=<string:pwd>&ent_type=<string:ent_type>',
+                 endpoint='adduser')
 api.add_resource(BoardAPI, '/boards/<string:title>', endpoint='board')
-api.add_resource(TeamAPI, '/addteam/name=<string:name>&email=<string:email>')
+api.add_resource(TeamAPI, '/addteam/name=<string:name>&email=<string:email>', endpoint='addteam')
 
 
 if __name__ == '__main__':

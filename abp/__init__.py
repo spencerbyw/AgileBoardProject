@@ -77,6 +77,9 @@ class CardAPI(Resource):
 
     # Example: DELETE <host>/card/33
     def delete(self, id):
+        cur.execute('delete from categorizedAs where card_id = %s;', [id])
+        cur.execute('delete from assignedTo where card_id = %s;', [id])
+        cur.execute('delete from isBackloggedOn where card_id = %s;', [id])
         cur.execute('delete from card where id = %s;', [id])
         # conn.commit()
         return True
@@ -110,7 +113,6 @@ class MoveCardAPI(Resource):
         return True
 
 
-
 class AssignCardAPI(Resource):
     # Assign card to a specific user
     # Example: PUT <host>/assigncard/email=sgarcia0%40wordpress.org&card_id=49
@@ -134,6 +136,15 @@ class AssignCardAPI(Resource):
 
         # conn.commmit()
         return True
+
+
+class FilteredCardsAPI(Resource):
+    parser = reqparse.RequestParser()
+    parser.add_argument('priority', location='args')
+    parser.add_argument('past_due', type=bool, location='args')
+    parser.add_argument('assignee', location='args')
+
+
 
 
 class TeamMemberAPI(Resource):

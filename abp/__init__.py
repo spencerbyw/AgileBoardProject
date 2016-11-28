@@ -133,14 +133,16 @@ class BoardAPI(Resource):
 
 class TeamAPI(Resource):
     # This is the cure-all, the origin. Returns mostly everything you need to render the page.
-    # Example: <host>/userboard/sgarcia0%40wordpress.org
-    def get(self, email):
+    # Example: <host>/userboard/user=sgarcia0%40wordpress.org&pwd=gWA61Du6h
+    def get(self, email, pwd):
         uemail = cln(email)
 
         # Get pertinent user
-        query = "select name, email, role, hiredate from teammember where email = %s;"
-        cur.execute(query, [uemail])
+        query = "select name, email, role, hiredate from teammember where email = %s and password = %s;"
+        cur.execute(query, [uemail, cln(pwd)])
         uinfo = cur.fetchone()
+        if not uinfo:
+            return {'error': 'User not found with those credentials.'}
 
         # Get user's team
         query = "select t.name from team t, composedOf co where t.name = co.team_name and co.member_email = %s;"
@@ -244,7 +246,7 @@ api.add_resource(TeamMemberAPI, '/adduser/name=<string:name>&email=<string:email
 
 api.add_resource(BoardAPI, '/boards/<string:title>', endpoint='board')
 
-api.add_resource(TeamAPI, '/userboard/<string:email>', endpoint='userboard')
+api.add_resource(TeamAPI, '/userboard/user=<string:email>&pwd=<string:pwd>', endpoint='userboard')
 api.add_resource(TeamAPI, '/addteam/name=<string:name>&email=<string:email>', endpoint='addteam')
 
 

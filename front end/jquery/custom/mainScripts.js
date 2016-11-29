@@ -1,6 +1,4 @@
 function initUI(){
-
-    $(document).toolTip();
     //Initialize sortables
      $( ".card-list-sortable" ).sortable({
       connectWith: ".card-list-sortable",

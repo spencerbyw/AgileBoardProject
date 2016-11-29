@@ -98,7 +98,7 @@ function populateBoard(board){
             $("#listContainer").css("width",width);
         }
         document.getElementById("backLogListContainer").innerHTML="";
-         $('#backLogListContainer').append(categoryCreator("bl","Backlog",board.backlog));
+         $('#backLogListContainer').append(categoryCreator("bl","Backlog","Backlogged cards.",board.backlog));
         initUI();   
 }
 

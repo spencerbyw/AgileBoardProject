@@ -366,6 +366,24 @@ class TeamAPI(Resource):
         # conn.commit()
         return True
 
+    # Add team member to team
+    # Example: PUT <host>/addusertoteam/team_name=Sonair&email=fknighth%40clickbank.net
+    def put(self, team_name, email):
+        # Make sure teammember and team exist
+        cur.execute('select * from team where name = %s;', [cln(team_name)])
+        if not cur.fetchone():
+            return {'error': 'Team does not exist.'}
+        cur.execute('select * from teammember where email = %s;', [cln(email)])
+        if not cur.fetchone():
+            return {'error': 'TeamMember does not exist.'}
+
+        # Add the composedOf relation
+        query = 'insert into composedOf (team_name, member_email) values (%s, %s);'
+        cur.execute(query, [cln(team_name), cln(email)])
+        return True
+
+
+
 
 class CategoryAPI(Resource):
     parser = reqparse.RequestParser()
@@ -433,7 +451,9 @@ api.add_resource(BoardAPI, '/board/<string:title>', '/board/team_name=<string:te
                  endpoint='board')
 
 api.add_resource(EverythingAPI, '/userboard/user=<string:email>&pwd=<string:pwd>', endpoint='userboard')
-api.add_resource(TeamAPI, '/addteam/name=<string:name>&email=<string:email>', endpoint='addteam')
+api.add_resource(TeamAPI, '/addteam/name=<string:name>&email=<string:email>',
+                 '/addusertoteam/team_name=<string:team_name>&email=<string:email>',
+                 endpoint='addteam')
 
 api.add_resource(CategoryAPI, '/category', '/category/<int:cat_id>', endpoint='category')
 

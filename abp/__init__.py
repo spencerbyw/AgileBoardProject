@@ -211,7 +211,7 @@ class TeamMemberAPI(Resource):
 
 
 class BoardAPI(Resource):
-    # Example: <host>/boards/Ameliorated
+    # Example: <host>/board/Ameliorated
     # NOTE: The title needs to be url_encoded
     def get(self, title):
         title_clean = cln(title)
@@ -239,6 +239,24 @@ class BoardAPI(Resource):
         # TODO: return backlog
         return jsonify(board)
 
+    # Create a new Board run by specified Team
+    # Example: POST <host>/board/team_name=Flexidy&board_title=Wowza&board_desc=So%20cool
+    def post(self, team_name, board_title, board_desc):
+        # Make sure Team exists
+        cur.execute('select * from team where name = %s;', [cln(team_name)])
+        if not cur.fetchone():
+            return {'error': 'Team does not exist'}
+        # Make sure Board DNE
+        cur.execute('select * from board where title = %s;', [cln(board_title)])
+        if cur.fetchone():
+            return {'error': 'Board already exists.'}
+
+        # Create the Board and runBy
+        query = 'insert into Board (title, description) values (%s, %s);'
+        cur.execute(query, [cln(board_title), cln(board_desc)])
+        query = 'insert into runBy (board_title, team_name) values (%s, %s);'
+        cur.execute(query, [cln(board_title), cln(team_name)])
+        return True
 
 class TeamAPI(Resource):
     # This is the cure-all, the origin. Returns mostly everything you need to render the page.
@@ -386,7 +404,9 @@ api.add_resource(TeamMemberAPI, '/adduser/name=<string:name>&email=<string:email
                                 'pwd=<string:pwd>&ent_type=<string:ent_type>',
                  endpoint='adduser')
 
-api.add_resource(BoardAPI, '/boards/<string:title>', endpoint='board')
+api.add_resource(BoardAPI, '/board/<string:title>', '/board/team_name=<string:team_name>&'
+                                                    'board_title=<string:board_title>&board_desc=<string:board_desc>',
+                 endpoint='board')
 
 api.add_resource(TeamAPI, '/userboard/user=<string:email>&pwd=<string:pwd>', endpoint='userboard')
 api.add_resource(TeamAPI, '/addteam/name=<string:name>&email=<string:email>', endpoint='addteam')

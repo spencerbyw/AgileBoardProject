@@ -143,6 +143,13 @@ class FilteredCardsAPI(Resource):
     parser.add_argument('priority', location='args')
     parser.add_argument('past_due', type=bool, location='args')
     parser.add_argument('assignee', location='args')
+    parser.add_argument('board_title', required=True, location='args')
+
+    # Get list of cards based on argument filters
+    # Example: GET
+    def get(self):
+        args = self.parser.parse_args()
+
 
 
 
@@ -216,6 +223,10 @@ class TeamAPI(Resource):
         query = "select t.name from team t, composedOf co where t.name = co.team_name and co.member_email = %s;"
         cur.execute(query, [uemail])
         tinfo = cur.fetchone()
+        query = 'select tm.name, tm.email, tm.role, tm.hireDate from composedOf co, teammember tm ' \
+                'where co.team_name = %s and co.member_email = tm.email;'
+        cur.execute(query, [tinfo['name']])
+        tinfo['members'] = cur.fetchall()
 
         # Get boards run by team
         query = "select b.title, b.description from board b, runby rb " \

@@ -421,6 +421,7 @@ class CategoryAPI(Resource):
         cur.execute('delete from categorizedas where category_id = %s;', [cat_id])
         # Delete all Cards
         for ca in cas:
+            cur.execute('delete from assignedto where card_id = %s', [ca['card_id']])
             cur.execute('delete from card where id = %s;', [ca['card_id']])
 
         # Delete the Category

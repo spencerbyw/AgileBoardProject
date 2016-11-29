@@ -140,16 +140,52 @@ class AssignCardAPI(Resource):
 
 class FilteredCardsAPI(Resource):
     parser = reqparse.RequestParser()
-    parser.add_argument('priority', location='args')
+    parser.add_argument('priority', location='args', choices=['LOW', 'MED', 'HIGH'])
     parser.add_argument('past_due', type=bool, location='args')
     parser.add_argument('assignee', location='args')
     parser.add_argument('board_title', required=True, location='args')
 
     # Get list of cards based on argument filters
-    # Example: GET
+    # Argument order DOES NOT MATTER FOR THIS ENDPOINT
+    # The only required argument is board_title
+    # Examples: GET <host>/filteredcards?board_title=Ameliorated    -> All cards in board
+    #               <host>/filteredcards?board_title=Ameliorated&priority=LOW    -> LOW priority cards in board
+    #               <host>/filteredcards?board_title=Ameliorated&assignee=cstonef%40sciencedaily.com&priority=MED
+    #               <host>/filteredcards?board_title=Ameliorated&past_due=true
     def get(self):
         args = self.parser.parse_args()
+        query = 'select * from (' \
+                'select c.* from card c, category cat, boardContains bc, categorizedAs ca where ' \
+                'bc.board_title = %s and ' \
+                'bc.category_id = cat.id and ' \
+                'cat.id = ca.category_id and ' \
+                'ca.card_id = c.id ' \
+                'UNION ' \
+                'select c.* from card c, isbackloggedon ibo where ' \
+                'ibo.board_title = %s and ' \
+                'ibo.card_id = c.id' \
+                ') all_cards ' \
+                'where ' \
+                '1 = 1'
+        if args['priority']:
+            query += ' and all_cards.priority = \'%s\'' % args['priority']
+        if args['past_due']:
+            query += ' and all_cards.due_date < now()'
+        query += ';'
+        cur.execute(query, [cln(args['board_title']), cln(args['board_title'])])
+        cards = cur.fetchall()
 
+        # Add assignedTo field
+        for c in cards:
+            query = 'select tm.name, tm.email from assignedTo at, TeamMember tm where ' \
+                    'at.member_email = tm.email and ' \
+                    'at.card_id = %s;'
+            cur.execute(query, [c['id']])
+            c['assignedto'] = cur.fetchone()
+        if args['assignee']:
+            cards = [c for c in cards if c['assignedto']]  # Filter by exists
+            cards = [c for c in cards if c['assignedto']['email'] == cln(args['assignee'])]  # Filter by assignee
+        return jsonify(cards)
 
 
 
@@ -319,7 +355,10 @@ api.add_resource(CardAPI, '/newcard/board_title=<string:board_title>&'
                  endpoint='newcard')
 
 api.add_resource(MoveCardAPI, '/movecard/card_id=<int:card_id>&category_id=<int:category_id>')
+
 api.add_resource(AssignCardAPI, '/assigncard/email=<string:email>&card_id=<int:card_id>')
+
+api.add_resource(FilteredCardsAPI, '/filteredcards')
 
 api.add_resource(TeamMemberAPI, '/users/<string:email>', endpoint='user')
 api.add_resource(TeamMemberAPI, '/adduser/name=<string:name>&email=<string:email>&role=<string:role>&'

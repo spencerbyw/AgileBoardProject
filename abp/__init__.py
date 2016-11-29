@@ -189,14 +189,14 @@ class FilteredCardsAPI(Resource):
 
 
 class TeamMemberAPI(Resource):
-    # Example: <host>/users/sgarcia0%40wordpress.org
+    # Example: GET <host>/users/sgarcia0%40wordpress.org
     def get(self, email):
         cur.execute('SELECT email, hiredate, name, role FROM TeamMember WHERE email = %s;',
                     [cln(email)])
         tm = cur.fetchone()
         return jsonify(tm)
 
-    # Example: <host>/adduser/name=Bob&email=bob%40bob.com&role=Ninja&pwd=afWIOJf&ent_type=SeniorDev
+    # Example: POST <host>/adduser/name=Bob&email=bob%40bob.com&role=Ninja&pwd=afWIOJf&ent_type=SeniorDev
     def post(self, name, email, role, pwd, ent_type):
         if cln(ent_type).lower() not in ['seniordev', 'intern', 'juniordev']:
             return {'error': 'Invalid type. Must be seniordev, intern, or juniordev.'}
@@ -258,7 +258,8 @@ class BoardAPI(Resource):
         cur.execute(query, [cln(board_title), cln(team_name)])
         return True
 
-class TeamAPI(Resource):
+
+class EverythingAPI(Resource):
     # This is the cure-all, the origin. Returns mostly everything you need to render the page.
     # Example: <host>/userboard/user=sgarcia0%40wordpress.org&pwd=gWA61Du6h
     def get(self, email, pwd):
@@ -339,6 +340,8 @@ class TeamAPI(Resource):
         uinfo['team'] = tinfo
         return jsonify(uinfo)
 
+
+class TeamAPI(Resource):
     # Create a Team with TeamMember as leader
     # Example: <host>/addteam/name=CoolTeam&email=sgarcia0%40wordpress.org
     def post(self, name, email):
@@ -386,6 +389,27 @@ class CategoryAPI(Resource):
         cur.execute(query, [cln(args['board_title']), cat['id']])
         return jsonify(cat)
 
+    # Delete a category and all contained Cards
+    # Example: DELETE <host>/category/3
+    def delete(self, cat_id):
+        # Get all categorizedAs's
+        query = 'select * from categorizedas where category_id = %s;'
+        cur.execute(query, [cat_id])
+        cas = cur.fetchall()
+
+        # Delete boardContains
+        cur.execute('delete from boardcontains where category_id = %s;', [cat_id])
+        # Delete all categorizedAs's
+        cur.execute('delete from categorizedas where category_id = %s;', [cat_id])
+        # Delete all Cards
+        for ca in cas:
+            cur.execute('delete from card where id = %s;', [ca['card_id']])
+
+        # Delete the Category
+        cur.execute('delete from category where id = %s;', [cat_id])
+
+        return {'message': 'Deleted %s cards and category %s.' % (len(cas), cat_id)}
+
 
 api.add_resource(CardAPI, '/card/<int:id>', endpoint='card')
 api.add_resource(CardAPI, '/newcard/board_title=<string:board_title>&'
@@ -408,10 +432,10 @@ api.add_resource(BoardAPI, '/board/<string:title>', '/board/team_name=<string:te
                                                     'board_title=<string:board_title>&board_desc=<string:board_desc>',
                  endpoint='board')
 
-api.add_resource(TeamAPI, '/userboard/user=<string:email>&pwd=<string:pwd>', endpoint='userboard')
+api.add_resource(EverythingAPI, '/userboard/user=<string:email>&pwd=<string:pwd>', endpoint='userboard')
 api.add_resource(TeamAPI, '/addteam/name=<string:name>&email=<string:email>', endpoint='addteam')
 
-api.add_resource(CategoryAPI, '/category')
+api.add_resource(CategoryAPI, '/category', '/category/<int:cat_id>', endpoint='category')
 
 
 if __name__ == '__main__':

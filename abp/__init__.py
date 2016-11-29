@@ -188,8 +188,6 @@ class FilteredCardsAPI(Resource):
         return jsonify(cards)
 
 
-
-
 class TeamMemberAPI(Resource):
     # Example: <host>/users/sgarcia0%40wordpress.org
     def get(self, email):
@@ -348,6 +346,29 @@ class TeamAPI(Resource):
         return True
 
 
+class CategoryAPI(Resource):
+    parser = reqparse.RequestParser()
+    parser.add_argument('board_title', required=True, location='args')
+    parser.add_argument('cat_title', required=True, location='args')
+    parser.add_argument('cat_desc', required=True, location='args')
+
+    # Create a new category in board
+    # Example: POST <host>/category?board_title=Ameliorated&cat_title=New%20Category&cat_desc=Such%20category
+    def post(self):
+        args = self.parser.parse_args()
+        # Ensure board exists
+        cur.execute('select * from board where title = %s;', [cln(args['board_title'])])
+        if not cur.fetchone():
+            return {'error': 'Board does not exist'}
+
+        query = 'insert into category (title, description) values (%s, %s) returning id, title, description;'
+        cur.execute(query, [cln(args['cat_title']), cln(args['cat_desc'])])
+        cat = cur.fetchone()
+        query = 'insert into boardContains (board_title, category_id) values (%s, %s);'
+        cur.execute(query, [cln(args['board_title']), cat['id']])
+        return jsonify(cat)
+
+
 api.add_resource(CardAPI, '/card/<int:id>', endpoint='card')
 api.add_resource(CardAPI, '/newcard/board_title=<string:board_title>&'
                           'priority=<string:priority>&description=<string:description>&'
@@ -369,6 +390,8 @@ api.add_resource(BoardAPI, '/boards/<string:title>', endpoint='board')
 
 api.add_resource(TeamAPI, '/userboard/user=<string:email>&pwd=<string:pwd>', endpoint='userboard')
 api.add_resource(TeamAPI, '/addteam/name=<string:name>&email=<string:email>', endpoint='addteam')
+
+api.add_resource(CategoryAPI, '/category')
 
 
 if __name__ == '__main__':

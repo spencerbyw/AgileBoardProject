@@ -1,0 +1,219 @@
+/* custom CSS */
+.nav-no-bottom-margin{
+	margin-bottom: 0px !important;
+}
+.backlog-drawer{
+	width:400px;
+	height:90vh;
+	z-index:50;
+	position:absolute;
+	display:none;
+	overflow-y:scroll;
+}
+
+.board-container{
+	width:100vw;
+	height:90vh;
+}
+.list-outer-wrapper{
+	width:100%;
+	background:whitesmoke;
+	overflow-x:scroll;
+	overflow-y:auto;
+}
+.list-container{
+	width:100%;
+	height:90vh;
+	background:whitesmoke;
+	overflow:scroll;
+}
+.list-header{
+	width:99%;
+	height:30px;
+	text-align:center;
+	left:0px;
+	border: 1px solid #dddddd;
+	background: #e9e9e9;
+	color: #333333;
+	font-weight: bold;
+	margin-bottom:10px;
+}
+.card-list{
+	margin:10px; 
+	width:350px;
+	background:lavender;
+	float:left;
+	text-align:center;
+}
+.card-list-sortable{
+	list-style-type: none;
+	padding-left:0 !important;
+	min-height:200px;
+}
+.card-list-no-drag{
+	list-style-type: none;
+	padding-left:0 !important;
+	min-height:200px;
+}
+.card{
+	display:inline-block;
+	height:200px;
+	width:98%;
+	position:relative;
+	margin-bottom:10px;
+	background: #f3f1f1;
+	border: 1px solid #d9d9d9;
+	z-index:20;
+}
+
+.tool-card{
+	display:inline-block;
+	height:200px;
+	width:295px;
+	position:relative;
+	margin:20px;
+	background: #f3f1f1;
+	border: 1px solid #d9d9d9;
+}
+.card-header{
+	width:100%;
+	height:30px;
+	text-align:center;
+	left:0px;
+	border: 1px solid #dddddd;
+	background: #e9e9e9;
+	color: #333333;
+	font-weight: bold;
+	margin-bottom:10px;
+}
+
+.card-body{
+	text-align:left;
+}
+
+.new-card-dialog{
+	display:none;
+}
+
+.login-dialog{
+	display:none;
+}
+
+.tool-dialog{
+	display:none;
+}
+
+.new-member-dialog{
+	display:none;
+}
+
+/*Jquery-UI defualts */
+body{
+	font-family: "Trebuchet MS", sans-serif;
+}
+.demoHeaders {
+	margin-top: 2em;
+}
+#dialog-link {
+	padding: .4em 1em .4em 20px;
+	text-decoration: none;
+	position: relative;
+}
+#dialog-link span.ui-icon {
+	margin: 0 5px 0 0;
+	position: absolute;
+	left: .2em;
+	top: 50%;
+	margin-top: -8px;
+}
+#icons {
+	margin: 0;
+	padding: 0;
+}
+#icons li {
+	margin: 2px;
+	position: relative;
+	padding: 4px 0;
+	cursor: pointer;
+	float: left;
+	list-style: none;
+}
+#icons span.ui-icon {
+	float: left;
+	margin: 0 4px;
+}
+.fakewindowcontain .ui-widget-overlay {
+	position: absolute;
+}
+select {
+	width: 200px;
+}
+
+.login-button{
+	float:right;
+	margin:5px;
+}
+
+.board-dropdown{
+	margin-top:6px;
+	display:none;
+}
+
+.login-dialog .ui-dialog-titlebar-close {
+    display: none;
+}
+
+.new-board-dialog{
+	display:none;
+}
+
+.filter-dialog{
+	display:none;
+}
+.new-category-dialog{
+	display:none;
+}
+.assign-from-backlog-dialog{
+	display:none;
+}
+
+.new-team-dialog{
+	display:none;
+}
+.bl-trigger{
+	height:80vh;
+	width:10px;
+	position:fixed;
+	left:0px;
+	top:100px;
+	background:blue;
+	z-index:300;
+}
+
+.card-delete{
+	float:right;
+	margin-top:2px;
+	margin-right:4px;
+}
+
+.card-base-wrapper{
+	position:absolute;
+	bottom:0px;
+	width:100%;
+}
+.card-base{
+	float:right;
+}
+.assign-select{
+	width: 150px;
+    height: 30px;
+    padding: 2px;
+    margin-bottom: 5px;
+    margin-right: 8px;
+}
+
+.assign-from-bl-button{
+	position:absolute;
+	bottom:2px;
+	right:4px;
+}

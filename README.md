@@ -27,7 +27,7 @@ To use `psql`, the command line interface for Postgres, do the following:
 
 
 ## Authors
-- Spencer Bywater [@spencerbyw](https://github.com/spencerbywater)
+- Spencer Bywater [@spencerbyw](https://github.com/spencerbyw)
 - Alex Rhodes
 - Alex Chambers
 - Caleb Hutchison
